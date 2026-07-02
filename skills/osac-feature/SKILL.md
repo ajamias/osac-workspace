@@ -28,8 +28,9 @@ Collect from conversation context. Ask only if truly ambiguous:
 
 ## Create the Feature
 
-The User Stories section must include at least one story for each OSAC persona
-that the feature affects. Use these exact persona names:
+The User Stories section must include a subsection for each OSAC persona.
+For each subsection, either add an outcome-focused story or explicitly mark the
+persona as not affected by this feature. Use these exact persona names:
 
 | Persona | Role |
 |---------|------|
@@ -58,6 +59,7 @@ KEY=$(jira issue create -t Feature --project OSAC \
 ### Cloud Provider Admin
 
 - As a Cloud Provider Admin, I want <outcome> so that <reason>
+- (or: not affected by this feature)
 
 ### Cloud Infrastructure Admin
 
@@ -67,10 +69,12 @@ KEY=$(jira issue create -t Feature --project OSAC \
 ### Tenant Admin
 
 - As a Tenant Admin, I want <outcome> so that <reason>
+- (or: not affected by this feature)
 
 ### Tenant User
 
 - As a Tenant User, I want <outcome> so that <reason>
+- (or: not affected by this feature)
 
 ## Definition of Done
 
