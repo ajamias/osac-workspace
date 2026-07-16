@@ -218,12 +218,12 @@ Canonical skill definitions live in `skills/` (committed OSAC skills plus bootst
 
 `.claude/`, `.cursor/`, and `.gemini/` are gitignored except project settings; bootstrap recreates agent skill symlinks via `tools/link-agent-skills.sh`.
 
-**Skillsaw linting** (skillsaw `0.16.0` via `.pre-commit-config.yaml` `rev:`; scope is `skillsaw lint .` with blacklist via `.skillsaw.yaml` `exclude:`; strict lint only — no baseline file, see `.gitignore`):
+**Skillsaw linting** (version pinned in `Makefile` `SKILLSAW_VERSION`; scope is `skillsaw lint .` with blacklist via `.skillsaw.yaml` `exclude:`; strict lint only — no baseline file, see `.gitignore`):
 
-- `make skillsaw` — local and pre-commit hook (`uvx pre-commit run skillsaw --all-files`; `--no-baseline`; grade on success via hook `verbose: true`)
+- `make skillsaw` — lint full repo (on-demand; applies `SKILLSAW_VERSION`, `--strict`, `--no-baseline`)
+- `make skillsaw SKILL=skills/<name>/` — lint one skill (same pin and flags; no bare `skillsaw` on PATH)
+- **No pre-commit, no git hooks** — this repo has no root `.pre-commit-config.yaml`; skillsaw never runs automatically on `git commit`/`git push`. CI is the only gate. Keep `Makefile`'s `SKILLSAW_VERSION` and `.github/workflows/skillsaw.yml`'s `version:` input in sync when bumping.
 - **CI** — `stbenjam/skillsaw` action on PRs (same `.skillsaw.yaml`; fixed command, not `Makefile`); `skillsaw-review` workflow posts inline PR comments from the lint report (no PR code execution in the review job)
-- Git commit hooks — `pre-commit install` via `bootstrap.sh` when `pre-commit` or `rh-multi-pre-commit` is on PATH
-- Single skill: `skillsaw lint --strict --no-baseline skills/<name>/` using the skillsaw version from `.pre-commit-config.yaml` `rev`
 
 Skillsaw enforces [Agent Skills](https://agentskills.io/specification) structure (frontmatter, naming) and content quality heuristics. **Do not rewrite skill semantics just to pass lint** — tune `.skillsaw.yaml` for false positives or fix with backticks (see below).
 
