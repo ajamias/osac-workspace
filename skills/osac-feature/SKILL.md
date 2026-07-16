@@ -32,7 +32,6 @@ explicitly (never inferred from the description or summary).
 | Requires UI work | **Yes** | Ask: "Does this feature require UI work?" |
 | Fix version | **Yes** | Propose highest unreleased milestone from Jira (exclude `0.0`); user accepts, picks another, or chooses backlog |
 | Assignee | No | Unassigned — only assign if user specifies |
-| Label | No | `OSAC` |
 
 **Note:** Features are never *children* of epics. After creation, a bootstrap
 epic is created as a *child* of the Feature to track documentation gates.
@@ -41,9 +40,9 @@ epic is created as a *child* of the Feature to track documentation gates.
 
 | Issue type | fixVersion | Labels | Notes |
 |------------|------------|--------|-------|
-| Feature | Yes (confirm gate; source of truth) | `OSAC`, … | User chooses version or backlog |
-| Bootstrap epic | Copied from Feature when set | `OSAC`, `bootstrap` | Never independently chosen |
-| Gate tasks | No | `OSAC`, … | Doc gates only |
+| Feature | Yes (confirm gate; source of truth) | (optional) `osac-ux`, `osac-ui`, `customer`, … | User chooses version or backlog |
+| Bootstrap epic | Copied from Feature when set | `bootstrap` | Never independently chosen |
+| Gate tasks | No | `osac-ux` / `osac-ui` on UX/UI tasks only | PRD and Design have no labels |
 
 The Feature is the single source of truth for `/milestone-scope` reporting.
 Bootstrap epics mirror the Feature's fix version after parent linkage is verified.
@@ -142,7 +141,7 @@ Ready to create in Jira:
   Customer:    <name or none>
   UI work:     yes | no
   Fix version: <version> | backlog (unset)
-  Labels:      OSAC[, osac-ux, osac-ui if UI work][, customer, customer:<name>]
+  Labels:      [osac-ux, osac-ui if UI work][, customer, customer:<name>] | none
   Assignee:    <name or unassigned>
 
   Bootstrap epic:  <FEATURE_SUMMARY> - Bootstrap
@@ -364,7 +363,7 @@ add_temp "$OUT"
 ERR=$(new_temp osac-jira-feature-err)
 add_temp "$ERR"
 
-FEATURE_LABELS=(--label OSAC)
+FEATURE_LABELS=()
 [ "$REQUIRES_UI" = "yes" ] && FEATURE_LABELS+=(--label osac-ux --label osac-ui)
 [ -n "${CUSTOMER:-}" ] && FEATURE_LABELS+=(--label customer --label "customer:${CUSTOMER}")
 
@@ -453,7 +452,7 @@ if [ -z "${EPIC_KEY:-}" ]; then
   jira issue create -t Epic --project OSAC \
     -s "${EPIC_SUMMARY}" \
     -b "Documentation work gates for ${KEY}. These tasks track drafting, submitting, and merging planning documents — not implementation." \
-    --label OSAC --label bootstrap --no-input --raw >"$OUT" 2>"$ERR" </dev/null
+    --label bootstrap --no-input --raw >"$OUT" 2>"$ERR" </dev/null
 
   EPIC_KEY=$(jq -r '.key // empty' "$OUT")
   require_osac_key "$EPIC_KEY" "epic" "$OUT" "$ERR"
@@ -506,13 +505,13 @@ body includes `Feature: ${KEY}` on its own line. Do **not** reference
 
 | Summary | Labels | Body (lines in `$TASK_BODY`) | When |
 |---------|--------|------------------------------|------|
-| PRD | `OSAC` | 1: Draft, submit, and merge the Product Requirements Document. 2: Use `/prd` workflow. 3: Feature: ${KEY} | Always |
-| Design | `OSAC` | 1: Draft, submit, and merge the technical Design / Enhancement Proposal. 2: Use `/design` workflow. 3: Feature: ${KEY} | Always |
-| UX Design | `OSAC`, `osac-ux` | 1: Draft, submit, and merge the UX specification. 2: Feature: ${KEY} | `REQUIRES_UI=yes` |
-| UI Design | `OSAC`, `osac-ui` | 1: Draft, submit, and merge the UI design document. 2: Feature: ${KEY} | `REQUIRES_UI=yes` |
+| PRD | (none) | 1: Draft, submit, and merge the Product Requirements Document. 2: Use `/prd` workflow. 3: Feature: ${KEY} | Always |
+| Design | (none) | 1: Draft, submit, and merge the technical Design / Enhancement Proposal. 2: Use `/design` workflow. 3: Feature: ${KEY} | Always |
+| UX Design | `osac-ux` | 1: Draft, submit, and merge the UX specification. 2: Feature: ${KEY} | `REQUIRES_UI=yes` |
+| UI Design | `osac-ui` | 1: Draft, submit, and merge the UI design document. 2: Feature: ${KEY} | `REQUIRES_UI=yes` |
 
 Apply gate-task labels only on the task they describe — do **not** put `osac-ux`
-on UI Design or `osac-ui` on UX Design. PRD and Design stay `OSAC` only
+on UI Design or `osac-ui` on UX Design. PRD and Design have no labels
 (universal gates, not UX- or UI-specific work).
 
 For each gate task, duplicate-check with exact summary (substitute task name in
@@ -554,7 +553,7 @@ EOF
 
 jira issue create -t Task --project OSAC -s "PRD" \
   --template "$TASK_BODY" \
-  -P "${EPIC_KEY}" --label OSAC --no-input --raw >"$OUT" 2>"$ERR" </dev/null
+  -P "${EPIC_KEY}" --no-input --raw >"$OUT" 2>"$ERR" </dev/null
 
 TASK_PRD=$(jq -r '.key // empty' "$OUT")
 require_osac_key "$TASK_PRD" "task PRD" "$OUT" "$ERR"
@@ -572,7 +571,7 @@ EOF
 
 jira issue create -t Task --project OSAC -s "UX Design" \
   --template "$TASK_BODY" \
-  -P "${EPIC_KEY}" --label OSAC --label osac-ux --no-input --raw >"$OUT" 2>"$ERR" </dev/null
+  -P "${EPIC_KEY}" --label osac-ux --no-input --raw >"$OUT" 2>"$ERR" </dev/null
 
 TASK_UX=$(jq -r '.key // empty' "$OUT")
 require_osac_key "$TASK_UX" "task UX Design" "$OUT" "$ERR"
@@ -589,7 +588,7 @@ EOF
 
 jira issue create -t Task --project OSAC -s "UI Design" \
   --template "$TASK_BODY" \
-  -P "${EPIC_KEY}" --label OSAC --label osac-ui --no-input --raw >"$OUT" 2>"$ERR" </dev/null
+  -P "${EPIC_KEY}" --label osac-ui --no-input --raw >"$OUT" 2>"$ERR" </dev/null
 
 TASK_UI=$(jq -r '.key // empty' "$OUT")
 require_osac_key "$TASK_UI" "task UI Design" "$OUT" "$ERR"
@@ -631,15 +630,15 @@ Feature created:
 Jira:           https://redhat.atlassian.net/browse/<KEY>
 Component:      <component>
 Fix version:    <version> | backlog (unset)
-Labels:         OSAC[, osac-ux, osac-ui if UI work][, customer, customer:<name>]
+Labels:         [osac-ux, osac-ui if UI work][, customer, customer:<name>] | none
 Bootstrap epic: https://redhat.atlassian.net/browse/<EPIC_KEY>
 Bootstrap label: bootstrap
 Epic fix version: <copied from Feature | not set (backlog)>
 Bootstrap tasks:
-  - PRD:        <TASK_PRD>         (OSAC)
-  - Design:     <TASK_DESIGN>      (OSAC)
-  [- UX Design:  <TASK_UX>         (OSAC, osac-ux)   UI work only]
-  [- UI Design:  <TASK_UI>         (OSAC, osac-ui)   UI work only]
+  - PRD:        <TASK_PRD>
+  - Design:     <TASK_DESIGN>
+  [- UX Design:  <TASK_UX>         (osac-ux)   UI work only]
+  [- UI Design:  <TASK_UI>         (osac-ui)   UI work only]
 Status:         New
 ```
 
@@ -659,12 +658,11 @@ Features should include these sections (in `$BODY`):
 ## Notes
 
 - OSAC project key: `OSAC`
-- Default label: `OSAC` on every issue this skill creates
 - Customer-driven features: add `customer` and `customer:<name>` labels on the Feature only
 - When `REQUIRES_UI=yes`: Feature gets `osac-ux` and `osac-ui`; both UX Design
   and UI Design tasks are created (`REQUIRES_UI` gates the full UX → UI track)
-- UX Design task gets `osac-ux`; UI Design task gets `osac-ui`; PRD/Design tasks
-  stay `OSAC` only; bootstrap epic gets `OSAC` and `bootstrap`
+- UX Design task gets `osac-ux`; UI Design task gets `osac-ui`; PRD and Design
+  have no labels; bootstrap epic gets `bootstrap` only
 - Jira hierarchy: Feature → Bootstrap epic → gate tasks (PRD, Design, [UX Design, UI Design])
 - Bootstrap epic: create without `-P`, then `jira issue edit -P` — Epic create with `-P` on a Feature parent returns HTTP 400; use `</dev/null` on all jira create/edit to avoid stdin hangs (jira-cli#948)
 - Gate tasks track documentation milestones, not implementation work

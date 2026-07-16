@@ -24,14 +24,14 @@ Collect from conversation context. Ask only if truly ambiguous:
 | Steps to reproduce | If known | From conversation context |
 | Epic key | If ambiguous | Ask user — e.g. "Which epic should I link this to?" |
 | Affects version | No | Suggest from parent Feature's fixVersion (planning hint); user confirms where the bug was found |
-| Label | No | `OSAC` |
 | Attachments | No | Logs, screenshots, or config files from conversation context |
 | Assignee | No | Unassigned — only assign if user specifies |
 
 **Version convention:** `affectsVersion` on bugs records **where the bug was found**.
 Feature `fixVersion` is a planning hint only — never copy it automatically without
-user confirmation. Do not read fix version from epics (epics inherit scope from
-the parent Feature and should not carry fixVersion).
+user confirmation. Walk to the Feature ancestor for the suggestion — do not read
+epic `fixVersion` directly (bootstrap epics mirror the Feature but Feature is the
+source of truth).
 
 ## Pre-Creation Check
 
@@ -189,7 +189,6 @@ EOF
 jira issue create -t Bug --project OSAC \
   --summary "<concise bug title>" \
   --template "$BODY" \
-  --label OSAC \
   --affects-version "<version>" \
   --no-input --raw >"$OUT" 2>"$ERR" </dev/null
 
