@@ -93,7 +93,7 @@ persona heading (e.g., `### Tenant User`). Mentioning a persona in prose
 `As a <persona>...` user story does not count — the reviewer cannot
 evaluate what that persona can actually do.
 
-- 0 = Vague, unclear, or describes system internals rather than user outcomes. No personas or services identified. Or: personas named in prose but no per-persona user stories at all.
+- 0 = Vague, unclear, or describes system internals rather than user outcomes. No personas or services identified, or no per-persona user stories.
 - 1 = Ambiguous — need is partially clear but mixed with implementation, missing specifics, or missing affected personas. Or: user stories exist but some affected personas lack stories.
 - 2 = Clear, specific, user-observable capabilities. Affected personas and services identified. Each affected persona has at least one user story.
 
